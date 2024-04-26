@@ -1,0 +1,49 @@
+import pandas as pd
+from transformers import pipeline
+import re
+
+# Path for Excel files
+company_df_path = r'C:\Users\tomas\Desktop\Data Science Research Project\2324RX19_Project_Data.xlsx'
+news_df_path = r'C:\Users\tomas\Desktop\Data Science Research Project\2324RX19_Project_Data.xlsx'
+
+# Load the data frames
+company_df = pd.read_excel(company_df_path, sheet_name='01.COMPANY')
+news_df = pd.read_excel(news_df_path, sheet_name='05.NEWS')
+
+# Merge the data frames
+merged_df = pd.merge(news_df, company_df, on='COMPANY_ID', how='left')
+
+# Filter the dataframe for headlines containing the company name
+filtered_df = merged_df[merged_df.apply(lambda x: str(x['COMPANY_NAME']).lower().replace(' ', '') in str(x['NEWS_TITLE']).lower().replace(' ', ''), axis=1)]
+
+# Function to replace specific sequence and characters around it with a single quote
+def replace_sequence_with_quote(text):
+    # The regular expression looks for 3 characters of any kind to the left of 'x0080' and 8 characters of any kind to the right.
+    pattern = r'.{2}Â.{5}'
+    # Replace pattern matches with a single quote
+    replaced_text = re.sub(pattern, "", text)
+    return replaced_text
+
+# Apply the replacement function to the NEWS_TITLE column
+filtered_df['NEWS_TITLE'] = filtered_df['NEWS_TITLE'].apply(replace_sequence_with_quote)
+
+# Initialize the sentiment analysis pipeline with the specific model
+classifier = pipeline('text-classification', model='mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis')
+
+# Function to classify the sentiment of news headlines in batches, including the company name
+def classify_sentiments_in_batches(titles, company_names, batch_size=32):
+    results = []
+    for i in range(0, len(titles), batch_size):
+        batch_titles = titles[i:i + batch_size]
+        batch_company_names = company_names[i:i + batch_size]
+        batch_texts = [f"{company_name} - {title}" for company_name, title in zip(batch_company_names, batch_titles)]
+        batch_results = classifier(batch_texts)
+        results.extend([result['label'] for result in batch_results])
+    return results
+
+# Apply batch sentiment analysis and add the results to the DataFrame
+filtered_df['Clasificacion'] = classify_sentiments_in_batches(filtered_df['NEWS_TITLE'].tolist(), filtered_df['COMPANY_NAME'].tolist())
+
+# Save output file
+output_path = r'C:\Users\tomas\Desktop\Data Science Research Project\dataset_con_clasificaciones_news_model_considering_company.csv'
+filtered_df.to_csv(output_path, index=False)
