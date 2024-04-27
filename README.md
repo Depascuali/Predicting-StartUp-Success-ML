@@ -989,6 +989,23 @@ final_df = final_df.apply(update_industry_columns, axis=1)
 
 This way, every row was now classified in 6 categories.
 
+# Some interesting Analytics using Tableau
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/15364d70-b036-496d-b3ef-709638b415d7)
+
+On the first graph, we can see that Companies that didn't reach an advanced stage have 7.4% more negative news  previous to the investment round than companies that did reach an advance stage.
+
+On the second graph, we observe that 70.4% of companies that had top management in Top 20 universities reached a late investment stage vs 58.1% in the case of companies that didn't had top management in Top 20 universities.
+However, this might be explained by 2 reasons:
+1) Most companies from the US are the most successful, and as most of the top 20 universities are as well from the US, there might be a strong correlation.
+2) It's logic to think that companies with directors that studied on the Top 20 universites might have more contacts and resources to reach late investment stages.
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/31e7521e-b708-4dd5-b47b-816c8a17fed2)
+
+Here, we can observe in green countries that have more Start Ups that reached an Advanced Investment Stage than companies that didn't. (Red is the other way round).
+As wee can see, there is a problem with South American Start-Ups.
+
+
 # Machine Learning Models
 
 Having the merged Data Set, it looks as follow:
