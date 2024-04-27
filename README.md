@@ -1307,6 +1307,14 @@ Most negative impact:
 
 ![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/f1f03ff4-c405-4448-b83a-8440478165b2)
 
+# In conclusion:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/62ba2809-b2d0-439b-baa8-864c8dd22e35)
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/b1501b8f-7580-40a6-a6e7-48c50b04129b)
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/47923783-1f3a-4d54-a9e0-8d5aaf1868a7)
+
 
 
 
