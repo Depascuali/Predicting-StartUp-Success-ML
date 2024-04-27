@@ -1074,6 +1074,11 @@ Having the merged Data Set, it looks as follow:
 
 ![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/355bd733-448f-4030-a959-5675eeded4fd)
 
+But, how do we choose the models?
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/985f0f5a-53e2-4cfe-9ca5-af519d312b3e)
+
+
 ### Logitic Regression
 ```python
 # Selecting features and target
