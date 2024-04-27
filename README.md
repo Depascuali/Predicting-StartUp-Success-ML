@@ -1320,6 +1320,8 @@ Most negative impact:
 
 ![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/47923783-1f3a-4d54-a9e0-8d5aaf1868a7)
 
+The whole presentation is available in the repository, feel free to check it out.
 
+Tomas Depascuali
 
 
