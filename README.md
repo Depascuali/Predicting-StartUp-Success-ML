@@ -989,7 +989,67 @@ final_df = final_df.apply(update_industry_columns, axis=1)
 
 This way, every row was now classified in 6 categories.
 
-# Some interesting Analytics using Tableau
+# Some interesting Analytics using Python and Tableau
+
+```python
+# Create DF to use for visualizations
+final_df_for_analysis = final_df
+final_df_for_analysis['Outcome'] = final_df['EXITED_ON'].apply(lambda x: 'Success' if isinstance(x, pd.Timestamp) else 'Non success')
+final_df_for_analysis['Closed_Status'] = final_df['CLOSED_ON'].apply(lambda x: 'Closed' if isinstance(x, pd.Timestamp) else 'Not Closed')
+
+
+print(final_df_for_analysis)
+```
+```python
+# Group by ADVANCED_STAGE and sum the news counts
+news_counts = final_df_for_analysis.groupby('ADVANCED_STAGE')[['Positive', 'Negative']].sum()
+
+# Calculate percentages
+total_news = news_counts.sum(axis=1)
+news_percentages = news_counts.div(total_news, axis=0) * 100
+
+# Plotting
+ax = news_percentages.plot(kind='bar', figsize=(10, 6))
+plt.title('Percentage of Positive and Negative News per ADVANCED_STAGE')
+plt.xlabel('ADVANCED_STAGE')
+plt.ylabel('Percentage')
+plt.xticks(rotation=0)
+plt.legend(title='News Type')
+
+# Annotate percentages
+for p in ax.patches:
+    width = p.get_width()
+    height = p.get_height()
+    x, y = p.get_xy()
+    ax.annotate(f'{height:.1f}%', (x + width/2, y + height + 1), ha='center')
+
+plt.show()
+```
+```python
+# Group by Top20_University_Present and ADVANCED_STAGE, and count the number of companies
+company_counts = final_df_for_analysis.groupby(['Top20_University_Present', 'ADVANCED_STAGE']).size().unstack(fill_value=0)
+
+# Calculate percentages
+company_percentages = company_counts.div(company_counts.sum(axis=1), axis=0) * 100
+
+# Plotting
+ax = company_percentages.plot(kind='bar', figsize=(10, 6))
+plt.title('Percentage of Companies by Top20 University Presence and Advanced Stage')
+plt.xlabel('Top20 University Present')
+plt.ylabel('Percentage of Companies')
+plt.xticks(rotation=0)
+plt.legend(title='Advanced Stage')
+
+# Annotate percentages
+for p in ax.patches:
+    width = p.get_width()
+    height = p.get_height()
+    x, y = p.get_xy()
+    ax.annotate(f'{height:.1f}%', (x + width/2, y + height + 1), ha='center')
+
+plt.show()
+```
+
 
 ![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/15364d70-b036-496d-b3ef-709638b415d7)
 
@@ -999,6 +1059,8 @@ On the second graph, we observe that 70.4% of companies that had top management 
 However, this might be explained by 2 reasons:
 1) Most companies from the US are the most successful, and as most of the top 20 universities are as well from the US, there might be a strong correlation.
 2) It's logic to think that companies with directors that studied on the Top 20 universites might have more contacts and resources to reach late investment stages.
+
+Using Tableau:
 
 ![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/31e7521e-b708-4dd5-b47b-816c8a17fed2)
 
@@ -1011,5 +1073,240 @@ As wee can see, there is a problem with South American Start-Ups.
 Having the merged Data Set, it looks as follow:
 
 ![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/355bd733-448f-4030-a959-5675eeded4fd)
+
+### Logitic Regression
+```python
+# Selecting features and target
+X = final_df[['Positive', 'Negative', 'Neutral', 'city', 'state', 'country', 'Top20_University_Present', 'Technology','Health & Wellness','Finance','Education','Manufacturing','Miscellaneous']]
+y = final_df['ADVANCED_STAGE']
+
+# Preprocessing for categorical features
+categorical_features = ['city', 'state', 'country', 'Top20_University_Present', 'Technology','Health & Wellness','Finance','Education','Manufacturing','Miscellaneous']
+categorical_transformer = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+    ('onehot', OneHotEncoder(handle_unknown='ignore'))
+])
+
+# Combine preprocessing steps
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('cat', categorical_transformer, categorical_features)
+    ])
+
+# Create preprocessing and training pipeline
+model = Pipeline(steps=[('preprocessor', preprocessor),
+                        ('classifier', LogisticRegression(solver='liblinear'))])
+
+# Split data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Fit the model
+model.fit(X_train, y_train)
+
+# Predict on testing set
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+```
+
+### Rest of models (Random Forest, KNN, Gradient Boosting)
+```python
+# Selecting features and target
+X = final_df[['Positive', 'Negative', 'Neutral', 'city', 'state', 'country', 'Top20_University_Present',
+              'Technology', 'Health & Wellness', 'Finance', 'Education', 'Manufacturing', 'Miscellaneous']]
+y = final_df['ADVANCED_STAGE']
+
+# Encoding the target variable if it's categorical
+le = LabelEncoder()
+y_encoded = le.fit_transform(y)
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
+
+# Since we have categorical features, let's use a simple approach to convert them to numeric
+X_train = pd.get_dummies(X_train)
+X_test = pd.get_dummies(X_test)
+
+# Make sure both training and test set have the same columns after encoding
+X_train, X_test = X_train.align(X_test, join='inner', axis=1)  # This ensures both have the same columns
+
+# Example model: Random Forest
+rf_clf = RandomForestClassifier(random_state=42)
+rf_clf.fit(X_train, y_train)
+rf_predictions = rf_clf.predict(X_test)
+```
+```python
+# Random Forest
+rf_model = RandomForestClassifier(random_state=42)
+rf_model.fit(X_train, y_train)
+rf_predictions = rf_model.predict(X_test)
+print(f"Random Forest Accuracy: {accuracy_score(y_test, rf_predictions)}")
+
+
+#GRADIENT BOOSTING MACHINES
+gbm_model = GradientBoostingClassifier(random_state=42)
+gbm_model.fit(X_train, y_train)
+gbm_predictions = gbm_model.predict(X_test)
+print(f"Gradient Boosting Accuracy: {accuracy_score(y_test, gbm_predictions)}")
+
+
+#KNN
+knn_model = KNeighborsClassifier()
+knn_model.fit(X_train, y_train)
+knn_predictions = knn_model.predict(X_test)
+print(f"KNN Accuracy: {accuracy_score(y_test, knn_predictions)}")
+```
+
+The rest of the models (Bayes and SVM) where done in AzureML as follows:
+
+![WhatsApp Image 2024-04-01 at 21 05 55_f9b6ef4b](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/685e8e2a-78cf-432e-8ae8-5c05c17a6a58)
+
+Now, we compare accuracy for the models:
+```python
+# Data for the models and their accuracy, unsorted
+models = ['SVM', 'Logistic Regression', 'Gradient Boosting', 'Random Forest', 'Bayes', 'KNN']
+accuracy = [57.0, 58.0, 57.6, 55.7, 57.1, 56.1]
+
+# Combine models and accuracy into a list of tuples and sort by accuracy
+model_accuracy_pairs = sorted(zip(models, accuracy), key=lambda x: x[1], reverse=True)
+
+# Unzip the sorted pairs back into models and accuracy lists
+sorted_models, sorted_accuracy = zip(*model_accuracy_pairs)
+
+# Setting up the figure and axes for the bar graph
+plt.figure(figsize=(12, 6))  # Adjust figure size for readability
+bar_width = 0.6  # Increased bar width for less space between bars
+bars = plt.bar(sorted_models, sorted_accuracy, color='#0c1b3f', width=bar_width)
+plt.xlabel('Model')
+plt.ylabel('Accuracy (%)')
+plt.title('Model Accuracy Comparison - Sorted')
+plt.xticks(rotation=45)  # Rotate the x-axis labels for readability
+plt.ylim(50, 60)  # Extend y-axis limit for displaying values on top
+
+# Loop through each bar to place the accuracy value on top
+for bar in bars:
+    yval = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width()/2, yval + 0.1, f"{yval}%", ha='center', va='bottom')
+
+# Adjust layout to ensure nothing overlaps and remove grid lines
+plt.grid(False)
+plt.tight_layout()
+```
+
+As we can see the results:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/44cc1f16-d635-4f68-b1ab-638f3792e49c)
+
+Logistic Regression had the best accuracy.
+
+Further Anlysis on Logistic Regression:
+
+```python
+# Calculate the probabilities of the positive class
+y_prob = model.predict_proba(X_test)[:, 1]
+
+# Calculate the ROC curve points
+fpr, tpr, thresholds = roc_curve(y_test, y_prob, pos_label='Yes')  # Adjust pos_label based on your positive class
+
+# Calculate the AUC (Area under the ROC Curve)
+roc_auc = auc(fpr, tpr)
+
+# Plotting the ROC curve
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc="lower right")
+plt.show()
+```
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/fc96a2ec-a000-420b-91ee-7c8949ab0b00)
+
+```python
+# Generate the confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+print("Confusion Matrix:")
+print(conf_matrix)
+```
+```python
+# Assuming y_test and y_pred are defined
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+# Plotting the confusion matrix
+fig, ax = plt.subplots(figsize=(8, 6))
+sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", ax=ax)
+
+# Labels, title and ticks
+label_font = {'size':'16'}  # Adjust to fit
+ax.set_xlabel('Predicted labels', fontdict=label_font);
+ax.set_ylabel('True labels', fontdict=label_font);
+ax.set_title('Confusion Matrix', fontdict={'size':'18'});
+ax.tick_params(axis='both', which='major', labelsize=12)  # Adjust to fit
+ax.xaxis.set_ticklabels(['Negative', 'Positive']); ax.yaxis.set_ticklabels(['Negative', 'Positive']);
+
+plt.show()
+```
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/3998e95e-763f-4324-ab38-ba2fa0071ea9)
+
+Measuring Feature importance with SHAP value:
+```python
+# Prepare the data for SHAP (this requires X_train to be preprocessed)
+X_train_preprocessed = model.named_steps['preprocessor'].transform(X_train)
+
+# Initialize the SHAP explainer
+explainer = shap.Explainer(model.named_steps['classifier'], X_train_preprocessed)
+
+# Calculate SHAP values
+shap_values = explainer.shap_values(X_train_preprocessed)
+```
+```python
+# Compute the mean absolute SHAP values for each feature and keep only positive values
+mean_shap_values_positive = np.maximum(np.mean(shap_values, axis=0), 0)
+
+# Sort the features by their mean absolute SHAP values in descending order
+sorted_indices = np.argsort(-mean_shap_values_positive)
+
+# Select the top N features with the most positive impact
+top_n = 10  # Adjust this to select the number of top features you want to display
+top_indices = sorted_indices[:top_n]
+
+# Create a summary plot with only the top positive impacting features
+shap.summary_plot(shap_values[:, top_indices], X_train_preprocessed[:, top_indices],
+                  feature_names=np.array(preprocessor.get_feature_names_out())[top_indices],
+                  plot_type="bar")
+```
+
+Most positive impact:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/9a71234f-06c9-4c39-aee8-39bf6d85f863)
+
+```python
+# Compute the mean SHAP values for each feature and keep only negative values
+mean_shap_values_negative = np.minimum(np.mean(shap_values, axis=0), 0)
+
+# Sort the features by their mean SHAP values in ascending order to get the most negative impact
+sorted_indices = np.argsort(mean_shap_values_negative)
+
+# Select the top N features with the most negative impact
+top_n = 10  # Adjust this to select the number of top features you want to display
+top_indices = sorted_indices[:top_n]
+
+# Create a summary plot with only the top negative impacting features
+shap.summary_plot(shap_values[:, top_indices], X_train_preprocessed[:, top_indices], feature_names=np.array(preprocessor.get_feature_names_out())[top_indices], plot_type="bar")
+```
+
+Most negative impact:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/f1f03ff4-c405-4448-b83a-8440478165b2)
+
+
 
 
