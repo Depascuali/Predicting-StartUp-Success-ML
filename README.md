@@ -433,6 +433,11 @@ news_data_classification = pd.read_excel('/content/drive/MyDrive/Applied Data Sc
 ```
 
 ### *Company Table*
+
+For clarification:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/92c4c325-718a-47d8-9347-cfc2687d865a)
+
 ```python
 # Divide column 'CATEGORY' in many columns
 categories_expanded = company_data['CATEGORY'].str.split(', ', expand=True)
@@ -487,6 +492,12 @@ company_data.to_excel(file_path, index=False)
 ```
 
 ### *Investment Table*
+
+For clarification:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/c29892ea-b27a-4ce5-8c27-705b914ceae6)
+
+
 ```python
 # Convert date columns to datetime format
 investment_data['ANNOUNCED_DATE'] = pd.to_datetime(investment_data['ANNOUNCED_DATE'])
@@ -535,6 +546,12 @@ investment_data.to_excel(file_path, index=False)
 ```
 
 ### *Acquisition Table*
+
+For clarification:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/b5a66e5e-c79a-4020-a235-5f66839515ad)
+
+
 ```python
 # Convert the 'ANNOUNCED_DATE' column from string to datetime to correctly sort the dates
 investment_data['ANNOUNCED_DATE'] = pd.to_datetime(investment_data['ANNOUNCED_DATE'], errors='coerce')
@@ -582,6 +599,11 @@ As there are 136 companies that made an acquisition before reaching a late stage
 
 ### *Employee Table*
 The objective is to create a new column to determine if a company has employees that studied in the top 20 universities in the world.
+
+For clarification:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/a22e23d2-3cad-4506-a6b1-0d8a46a8ee32)
+
 
 ```python
 Top20_Universities = [
@@ -661,6 +683,11 @@ employee_data.rename(columns={'COMPANY_IDS': 'COMPANY_ID'}, inplace=True)
 
 ### *News Data Table*
 
+For clarification:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/5487145a-c2e2-4a07-b2df-8fc386f427e9)
+
+
 In this table, we first run locally the sentiment analysis (it was impossible to do it in Collab as it would take a lot of GPU and time. We obtained a result table with the classifications for each news and used this as our base News Data Table. So, first the Visual Studio Code:
 *(The file is also available in the repository: Sentiment Analysis - Hugging Face - Group G)*
 
@@ -739,6 +766,10 @@ print(news_data_classification.head())
 ```
 
 # Creation of final table
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/f600bcc2-f1f7-4557-bb49-b6c5e2503bd0)
+
+
 We now have applied the cleaning and transformation to every table, now it's time to create the final data set.
 ```python
 def contar_noticias(row, news_data_classification):
@@ -957,4 +988,11 @@ final_df = final_df.apply(update_industry_columns, axis=1)
 ```
 
 This way, every row was now classified in 6 categories.
+
+# Machine Learning Models
+
+Having the merged Data Set, it looks as follow:
+
+![image](https://github.com/Depascuali/Predicting-StartUp-Success-ML/assets/97790973/355bd733-448f-4030-a959-5675eeded4fd)
+
 
